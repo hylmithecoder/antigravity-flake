@@ -1,6 +1,6 @@
 # Antigravity IDE Nix Flake
 
-Nix Flake untuk menginstal **Google Antigravity IDE** versi `2.0.4` (versi stabil terbaru) di Linux.
+Nix Flake untuk menginstal **Google Antigravity IDE** versi `2.1.1` (versi stabil terbaru) di Linux.
 
 Flake ini menyediakan dua varian paket:
 1. **`google-antigravity`** (Default): Menggunakan FHS environment (`buildFHSEnv` via Bubblewrap) untuk isolasi yang aman dan kompatibilitas penuh.
