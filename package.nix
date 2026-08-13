@@ -188,7 +188,7 @@
     src = finalSrc;
 
     setSourceRoot = ''
-      sourceRoot="Antigravity IDE"
+      sourceRoot="Antigravity-${if isAarch64 then "arm64" else "x64"}"
     '';
 
     dontBuild = true;
@@ -198,17 +198,6 @@
 
     nativeBuildInputs = [asar];
 
-    postPatch = ''
-      packed="resources/app/node_modules.asar"
-      unpacked="resources/app/node_modules"
-      asar extract "$packed" "$unpacked"
-
-      substituteInPlace $unpacked/@vscode/sudo-prompt/index.js \
-        --replace-fail "/usr/bin/pkexec" "/run/wrappers/bin/pkexec" \
-        --replace-fail "/bin/bash" "${bash}/bin/bash"
-      rm -rf "$packed"
-      ln -rs "$unpacked" "$packed"
-    '';
 
     installPhase = ''
       runHook preInstall
@@ -254,7 +243,7 @@
       export CHROME_BIN=${chrome-wrapper}
       export CHROME_PATH=${chrome-wrapper}
 
-      exec ${antigravity-unwrapped}/lib/antigravity/antigravity-ide "$@"
+      exec ${antigravity-unwrapped}/lib/antigravity/antigravity "$@"
     '';
 
     inherit meta;
@@ -266,7 +255,7 @@
     dontUnpack = true;
     dontBuild = true;
 
-    nativeBuildInputs = [copyDesktopItems];
+    nativeBuildInputs = [copyDesktopItems asar];
 
     desktopItems = [desktopItem];
 
@@ -278,8 +267,10 @@
 
       # Install icon from the app resources
       mkdir -p $out/share/pixmaps $out/share/icons/hicolor/1024x1024/apps
-      cp ${antigravity-unwrapped}/lib/antigravity/resources/app/resources/linux/code.png $out/share/pixmaps/antigravity.png
-      cp ${antigravity-unwrapped}/lib/antigravity/resources/app/resources/linux/code.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
+      asar extract-file ${antigravity-unwrapped}/lib/antigravity/resources/app.asar icon.png
+      cp icon.png $out/share/pixmaps/antigravity.png
+      cp icon.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
+      rm icon.png
 
       runHook postInstall
     '';
@@ -296,7 +287,7 @@
     src = finalSrc;
 
     setSourceRoot = ''
-      sourceRoot="Antigravity IDE"
+      sourceRoot="Antigravity-${if isAarch64 then "arm64" else "x64"}"
     '';
 
     nativeBuildInputs = [
@@ -321,16 +312,6 @@
     dontBuild = true;
     dontConfigure = true;
 
-    postPatch = ''
-      packed="resources/app/node_modules.asar"
-      unpacked="resources/app/node_modules"
-      asar extract "$packed" "$unpacked"
-      substituteInPlace $unpacked/@vscode/sudo-prompt/index.js \
-        --replace-fail "/usr/bin/pkexec" "/run/wrappers/bin/pkexec" \
-        --replace-fail "/bin/bash" "${bash}/bin/bash"
-      rm -rf "$packed"
-      ln -rs "$unpacked" "$packed"
-    '';
 
     desktopItems = [desktopItem];
 
@@ -350,14 +331,16 @@
       chmod +x $out/lib/antigravity/bin/antigravity-tunnel
 
       mkdir -p $out/bin
-      makeWrapper $out/lib/antigravity/antigravity-ide $out/bin/antigravity \
+      makeWrapper $out/lib/antigravity/antigravity $out/bin/antigravity \
         --set CHROME_BIN ${chrome-wrapper} \
         --set CHROME_PATH ${chrome-wrapper}
 
       # Install icon from the app resources
       mkdir -p $out/share/pixmaps $out/share/icons/hicolor/1024x1024/apps
-      cp $out/lib/antigravity/resources/app/resources/linux/code.png $out/share/pixmaps/antigravity.png
-      cp $out/lib/antigravity/resources/app/resources/linux/code.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
+      asar extract-file $out/lib/antigravity/resources/app.asar icon.png
+      cp icon.png $out/share/pixmaps/antigravity.png
+      cp icon.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
+      rm icon.png
 
       runHook postInstall
     '';
