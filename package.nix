@@ -55,7 +55,7 @@
   srcOverride ? null,
 }: let
   pname = "google-antigravity";
-  version = "2.8.0-5810824271495168";
+  version = "2.5.2-6697361355964416";
 
   isAarch64 = stdenv.hostPlatform.system == "aarch64-linux";
 
@@ -85,8 +85,8 @@
     then srcOverride
     else
       fetchurl {
-        url = "https://storage.googleapis.com/antigravity-public/antigravity-hub/${version}/linux-x64/Antigravity.tar.gz";
-        sha256 = "sha256-G+dslMV5Vk3IKMUbeygo6gA+fJy4IRUZmjGfv7WIl0A=";
+        url = "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/${version}/linux-x64/Antigravity%20IDE.tar.gz";
+        sha256 = "sha256-33WDofjiY3wJCMUWOMfiF+su04ezqqMJVQX+KJGeQBg=";
       };
 
   # Create a browser wrapper
@@ -188,7 +188,7 @@
     src = finalSrc;
 
     setSourceRoot = ''
-      sourceRoot="Antigravity-${if isAarch64 then "arm64" else "x64"}"
+      sourceRoot="Antigravity IDE"
     '';
 
     dontBuild = true;
@@ -198,6 +198,17 @@
 
     nativeBuildInputs = [asar];
 
+    postPatch = ''
+      packed="resources/app/node_modules.asar"
+      unpacked="resources/app/node_modules"
+      asar extract "$packed" "$unpacked"
+
+      substituteInPlace $unpacked/@vscode/sudo-prompt/index.js \
+        --replace-fail "/usr/bin/pkexec" "/run/wrappers/bin/pkexec" \
+        --replace-fail "/bin/bash" "${bash}/bin/bash"
+      rm -rf "$packed"
+      ln -rs "$unpacked" "$packed"
+    '';
 
     installPhase = ''
       runHook preInstall
@@ -243,7 +254,7 @@
       export CHROME_BIN=${chrome-wrapper}
       export CHROME_PATH=${chrome-wrapper}
 
-      exec ${antigravity-unwrapped}/lib/antigravity/antigravity "$@"
+      exec ${antigravity-unwrapped}/lib/antigravity/antigravity-ide "$@"
     '';
 
     inherit meta;
@@ -255,7 +266,7 @@
     dontUnpack = true;
     dontBuild = true;
 
-    nativeBuildInputs = [copyDesktopItems asar];
+    nativeBuildInputs = [copyDesktopItems];
 
     desktopItems = [desktopItem];
 
@@ -267,10 +278,8 @@
 
       # Install icon from the app resources
       mkdir -p $out/share/pixmaps $out/share/icons/hicolor/1024x1024/apps
-      asar extract-file ${antigravity-unwrapped}/lib/antigravity/resources/app.asar icon.png
-      cp icon.png $out/share/pixmaps/antigravity.png
-      cp icon.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
-      rm icon.png
+      cp ${antigravity-unwrapped}/lib/antigravity/resources/app/resources/linux/code.png $out/share/pixmaps/antigravity.png
+      cp ${antigravity-unwrapped}/lib/antigravity/resources/app/resources/linux/code.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
 
       runHook postInstall
     '';
@@ -287,7 +296,7 @@
     src = finalSrc;
 
     setSourceRoot = ''
-      sourceRoot="Antigravity-${if isAarch64 then "arm64" else "x64"}"
+      sourceRoot="Antigravity IDE"
     '';
 
     nativeBuildInputs = [
@@ -312,6 +321,16 @@
     dontBuild = true;
     dontConfigure = true;
 
+    postPatch = ''
+      packed="resources/app/node_modules.asar"
+      unpacked="resources/app/node_modules"
+      asar extract "$packed" "$unpacked"
+      substituteInPlace $unpacked/@vscode/sudo-prompt/index.js \
+        --replace-fail "/usr/bin/pkexec" "/run/wrappers/bin/pkexec" \
+        --replace-fail "/bin/bash" "${bash}/bin/bash"
+      rm -rf "$packed"
+      ln -rs "$unpacked" "$packed"
+    '';
 
     desktopItems = [desktopItem];
 
@@ -331,16 +350,14 @@
       chmod +x $out/lib/antigravity/bin/antigravity-tunnel
 
       mkdir -p $out/bin
-      makeWrapper $out/lib/antigravity/antigravity $out/bin/antigravity \
+      makeWrapper $out/lib/antigravity/antigravity-ide $out/bin/antigravity \
         --set CHROME_BIN ${chrome-wrapper} \
         --set CHROME_PATH ${chrome-wrapper}
 
       # Install icon from the app resources
       mkdir -p $out/share/pixmaps $out/share/icons/hicolor/1024x1024/apps
-      asar extract-file $out/lib/antigravity/resources/app.asar icon.png
-      cp icon.png $out/share/pixmaps/antigravity.png
-      cp icon.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
-      rm icon.png
+      cp $out/lib/antigravity/resources/app/resources/linux/code.png $out/share/pixmaps/antigravity.png
+      cp $out/lib/antigravity/resources/app/resources/linux/code.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
 
       runHook postInstall
     '';
