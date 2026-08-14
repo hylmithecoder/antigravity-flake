@@ -34,14 +34,14 @@
           ];
 
           shellHook = ''
-            echo "Google Antigravity 2.5.2 Flake Environment"
+            echo "Google Antigravity 2.5.5 Flake Environment"
           '';
         };
       }
     )
     // {
       # Version information
-      version = "2.5.2-6697361355964416";
+      version = "2.5.5-4923483625488384";
 
       # Overlay for easy integration into configurations
       overlays.default = final: prev: {
